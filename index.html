@@ -13,23 +13,8 @@
     <div id="app">
         {{ msg }}
     </div>
-    <script>
-        let config = {
-            databaseURL: "https://hacker-news.firebaseio.com",
-        }
-        firebase.initializeApp(config)
-        let database = firebase.database()
-        function getItem(itemId) {
-            return database.ref('/v0' + '/item/' + itemId)
-            .once('value')
-            .then(snapshot => {
-                const val = snapshot.val()
-                console.log(val)
-                return val
-            })
-        }
-    </script>
 
+    <script src="./firebaseAPI.js"></script>
     <script src="./main.js"></script>
 </body>
 </html>

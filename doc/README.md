@@ -51,3 +51,64 @@ function getItem(itemId) {
 ![FirebaseAPI](./img/firebaseAPI.png)
 
 `database`每次请求返回的是一个`Promise`，可以看到我们的数据和官方给出的数据相同，当然你也可以尝试其他的ID。
+
+#### 1.2 Other API
+
+我们现在只有一个获取`item`的函数，接下来编写获取其他数据的函数(暂时不考虑监控数据的变化)。
+
+|               功能                |               URL               |
+| :-------------------------------: | :-----------------------------: |
+|               Users               |          /v0/user/<id>          |
+|            Max Item ID            |           /v0/maxitem           |
+| topstories,newstories,beststories | /v0/{top \| new \| best}stories |
+| askstories,showstories,jobstories | /v0/{ask \| show \| job}stories |
+|    Changed Items and Profiles     |           /v0/updates           |
+
+由于要修改的东西比较多，所以我们把获取数据库数据的部分移动到一个单独的文件中。
+
+由于我们要访问多个URL，且都是以`v0`开头，所以这里采用定义`rootRef`的形式，具体介绍见[Firebase database Reference API](https://firebase.google.cn/docs/reference/js/firebase.database.Reference)，之后的参数可以使用`child`来指定。
+
+``` javascript
+function getUser(userId) {
+    return rootRef.child('user/' + userId)
+    .once('value')
+    .then(snapshot => {
+        const val = snapshot.val()
+        return val
+    })
+}
+
+function getMaxItemId() {
+    return rootRef.child('maxitem')
+    .once('value')
+    .then(snapshot => {
+        const val = snapshot.val()
+        return val
+    })
+}
+
+function getStories(type) {
+    if (['top', 'new', 'best', 'ask', 'show', 'job'].indexOf(type) === -1) return
+    return rootRef.child(`${type}stories`)
+    .once('value')
+    .then(snapshot => {
+        const val = snapshot.val()
+        return val
+    })
+}
+
+function getUpdates() {
+    return rootRef.child(`updates`)
+    .once('value')
+    .then(snapshot => {
+        const val = snapshot.val()
+        return val
+    })
+}
+```
+
+将其他接口编写完成并进行测试，这只是一个初步的版本，再之后还会进行修改。
+
+------
+
+调用Firebase API来获取数据的部分差不多已经结束了，我们的第一个目标是编写一个静态渲染的界面，所以监测数据变化的工作会在之后的阶段进行。
