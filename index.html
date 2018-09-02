@@ -6,11 +6,30 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>HackNews</title>
     <script src="https://cdn.bootcss.com/vue/2.5.16/vue.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.0.4/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.0.4/firebase-database.js"></script>
 </head>
 <body>
     <div id="app">
         {{ msg }}
     </div>
+    <script>
+        let config = {
+            databaseURL: "https://hacker-news.firebaseio.com",
+        }
+        firebase.initializeApp(config)
+        let database = firebase.database()
+        function getItem(itemId) {
+            return database.ref('/v0' + '/item/' + itemId)
+            .once('value')
+            .then(snapshot => {
+                const val = snapshot.val()
+                console.log(val)
+                return val
+            })
+        }
+    </script>
+
     <script src="./main.js"></script>
 </body>
 </html>
