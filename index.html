@@ -11,7 +11,28 @@
 </head>
 <body>
     <div id="app">
-        {{ msg }}
+        <header>
+            <nav>
+                <a href="/">Home</a>
+                <a href="/top">Top</a>
+                <a href="/new">New</a>
+                <a href="/show">Show</a>
+                <a href="/ask">Ask</a>
+                <a href="/jobs">Jobs</a>
+            </nav>
+        </header>
+        <main>
+            <ul>
+                <li v-for="news in topNewsData">
+                    <span> {{news.score}} </span>
+                    <span> {{news.title}} </span>
+                    <span> {{news.url}} </span>
+                    <span> by {{news.by}} </span>
+                    <span> {{news.time}} </span>
+                    <span> {{news.descendants}} comments</span>
+                </li>
+            </ul>
+        </main>
     </div>
 
     <script src="./firebaseAPI.js"></script>

@@ -112,3 +112,73 @@ function getUpdates() {
 ------
 
 调用Firebase API来获取数据的部分差不多已经结束了，我们的第一个目标是编写一个静态渲染的界面，所以监测数据变化的工作会在之后的阶段进行。
+
+### 2. Render Page
+
+初步目标是实现所有页面(除`comments`界面)的数据展示和整个页面的布局设计，没有引入路由和组件，所以会有很多的`v-if`来区分各个状态。我们将会一步一步的来实践`Vue`的各个概念。
+
+因为comments界面涉及递归渲染数据，是一个树形视图，需要涉及到递归渲染组件的操作，在把页面划分为组件时再编写这部分的代码。
+
+#### 2.1 Render Page: HTML and Data
+
+在这一节，将忽略样式(CSS)，将每一部分的功能划分清楚，这样将会对之后的其他工作有很大的帮助。
+
+这个界面的编写其实非常简单，难点在于我们如何利用前面写好的`api`。
+
+如果熟悉`Vue`的生命周期，那么我们可以在`created`时来获取我们想要的数据，需要注意的就是如何在获取到`Id List`之后再去获取每个ID对应的数据。
+
+```javascript
+let app = new Vue({
+    el: "#app",
+    data: {
+        topNewsList: [],
+        topNewsData: []
+    },
+    created() {
+        getStories('top')
+        .then(val => {
+            this.topNewsList = val.slice(0, 20)
+            this.getStoriesItem(this.topNewsList)
+            .then(data => this.topNewsData = data)
+        })
+    },
+    methods: {
+        getStoriesItem(stories) {
+            return Promise.all(stories.map(id => getItem(id)))
+        }
+    }
+})
+```
+
+``` html
+<div id="app">
+    <header>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/top">Top</a>
+            <a href="/new">New</a>
+            <a href="/show">Show</a>
+            <a href="/ask">Ask</a>
+            <a href="/jobs">Jobs</a>
+        </nav>
+    </header>
+    <main>
+        <ul>
+            <li v-for="news in topNewsData">
+                <span> {{news.score}} </span>
+                <span> {{news.title}} </span>
+                <span> {{news.url}} </span>
+                <span> by {{news.by}} </span>
+                <span> {{news.time}} </span>
+                <span> {{news.descendants}} comments</span>
+            </li>
+        </ul>
+    </main>
+</div>
+```
+
+现在的效果如下：
+
+![top](./img/top.png)
+
+接下来我们将编写剩下的界面。
