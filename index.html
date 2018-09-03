@@ -5,39 +5,72 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>HackNews</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.10.0/css/tachyons.min.css"/>
+    <link rel="stylesheet" href="./main.css"/>
     <script src="https://cdn.bootcss.com/vue/2.5.16/vue.js"></script>
     <script src="https://www.gstatic.com/firebasejs/5.0.4/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/5.0.4/firebase-database.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
 </head>
-<body>
+<body class="sans-serif vh-100 bg-light-gray">
     <div id="app">
-        <header>
-            <nav>
-                <a href="/" @click.prevent="handleNavClick($event,'top')">Home</a>
-                <a href="/top" @click.prevent="handleNavClick($event,'top')">Top</a>
-                <a href="/new" @click.prevent="handleNavClick($event,'new')">New</a>
-                <a href="/show" @click.prevent="handleNavClick($event,'show')">Show</a>
-                <a href="/ask" @click.prevent="handleNavClick($event,'ask')">Ask</a>
-                <a href="/jobs" @click.prevent="handleNavClick($event,'job')">Jobs</a>
+        <header class="bg-black white avenir">
+            <nav class="center mw7">
+                <a href="/top"  :class="navAClass" @click.prevent="handleNavClick($event,'top')">Top</a>
+                <a href="/new"  :class="navAClass" @click.prevent="handleNavClick($event,'new')">New</a>
+                <a href="/show" :class="navAClass" @click.prevent="handleNavClick($event,'show')">Show</a>
+                <a href="/ask"  :class="navAClass" @click.prevent="handleNavClick($event,'ask')">Ask</a>
+                <a href="/jobs" :class="navAClass" @click.prevent="handleNavClick($event,'job')">Jobs</a>
             </nav>
         </header>
         <main>
-            <ul v-if="state === 'story'">
-                <li v-for="news in apiData[storyState]">
-                    <span> {{news.score}} </span>
-                    <span> {{news.title}} </span>
-                    <span> {{news.url}} </span>
-                    <span @click="handleUserClick(news.by)" style="color: red;"> by {{news.by}} </span>
-                    <span> {{news.time}} </span>
-                    <span> {{news.descendants}} comments</span>
-                </li>
-            </ul>
+            <div 
+                class="center mw7 mt2"
+                v-if="state === 'story'"
+            >
+                <article 
+                    class="bg-white b--black-30 bb" 
+                    v-for="news in apiData[storyState]"
+                    v-if="!!news"
+                    :key=" news.id"
+                >
+                    <div class="dt h6 w-100 pb2 orange">
+                        <div class="dtc w3 tc v-mid">
+                            <span class="f3">{{news.score}}</span>
+                        </div>
+                        <div class="dtc v-mid pl2">
+                            <div class="lh-title black mv0">
+                                <template v-if="news.url">
+                                    <a :href="news.url" class="link f6 f5-ns fw4 black">{{news.title}}</a>
+                                    <span class="f7 black-60">({{news.url | host}})</span>
+                                </template>
+                                <template v-else>
+                                    <a :href="'/item/' + news.id" class="link f6 f5-ns fw4 black">{{news.title}}</a>
+                                </template>
+                            </div>
+                            <div class="f7 fw5 mt2 mb0 black-60">
+                                by <span class="underline" @click="handleUserClick(news.by)">{{news.by}}</span> 
+                                <span>{{news.time | timeFromNow}}</span> 
+                                <span v-if="news.descendants"> | </span> 
+                                <span class="underline" v-if="news.descendants">{{news.descendants}} comments</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </div>
 
-            <div v-if="state === 'user'">
-                <h1>User: {{currentUserData.id}} </h1>
-                <p>Created: {{currentUserData.created}} </p>
-                <p>karma: {{currentUserData.karma}} </p>
-                <div v-html="currentUserData.about"></div>
+            <div
+                class="center mw7 mt2"
+                v-if="state === 'user'"
+            >
+                <div class="bg-white pa4">
+                    <h2 class="f3 black-80 mt0">User : {{currentUserData.id}} </h1>
+                    <ul class="list pl0 f5">
+                        <li> <span class="dib w3">Created</span>: {{currentUserData.created | timeFromNow}} </li>
+                        <li> <span class="dib w3">Karma</span>: {{currentUserData.karma}} </li>
+                    </ul>
+                    <div class="f5" v-html="currentUserData.about"></div>
+                </div>
             </div>
 
         </main>

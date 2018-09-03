@@ -285,3 +285,26 @@ handleUserClick(userId) {
 }
 ```
 
+#### 2.3 Render Page: CSS
+
+你可以选择从头开始写或者选择任何一种你所熟悉的CSS工具库，在这里我选择的是`tachyons`，一种新的`Functionial CSS`概念。
+
+>[Tachyons](http://tachyons.io/)
+>
+>[Learn Tachyons](https://github.com/dwyl/learn-tachyons)
+>
+>[Search Tachyons Class](https://tachyons-tldr.now.sh/)
+
+发现`Home`没有什么用，选择删掉。
+
+重写了`story`和`User`的样式，并针对不同`story`的数据进行了不同的判断。
+
+> 注意⚠️：
+>
+> item中存在url为空的情况，这种情况是链接到hacknews内部的一篇文章，需要特殊处理。
+>
+> 还有可能存在item为null的情况，需要在渲染的时候判断一下。
+
+hacknews内部的文章的界面还没有编写，因为需要依赖`comments`组件，所以下一步就是编写`comments`组件。
+
+![css](./img/css.gif)

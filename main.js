@@ -4,7 +4,8 @@ let app = new Vue({
         state: 'story',
         storyState: 'top',
         apiData: {},
-        currentUserData: {}
+        currentUserData: {},
+        navAClass: ['dib', 'f6', 'f5-l', 'link', 'white', 'pa3', 'ph4-l', 'bg-animate', 'hover-bg-mid-gray', 'mw7']
     },
     created() {
         ['top', 'new', 'show', 'ask', 'job'].forEach(storyState => {
@@ -15,6 +16,17 @@ let app = new Vue({
                 .then(data => this.$set(this.apiData, storyState, data))
             })
         })
+    },
+    filters: {
+        timeFromNow(time) {
+            return moment(time * 1000).fromNow()
+        },
+        host(url) {
+            const host = url.replace(/^https?:\/\//, '').replace(/\/.*$/, '')
+            const parts = host.split('.').slice(-3)
+            if(parts[0] === 'www') parts.shift()
+            return parts.join('.')
+        }
     },
     methods: {
         getStoriesItem(stories) {
