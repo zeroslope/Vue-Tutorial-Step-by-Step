@@ -182,3 +182,106 @@ let app = new Vue({
 ![top](./img/top.png)
 
 接下来我们将编写剩下的界面。
+
+#### 2.2 Render Page: event and v-if
+
+由于我们要获取的数据更多，所以我们会稍微修改一下获取数据的函数，在开始时获取全部的数据，并保存到一个对象中。由于`Vue`的[响应式原理](https://cn.vuejs.org/v2/guide/reactivity.html)，所以我们直接给对象添加属性，`Vue`并不能直接监测数据的改变(Vue **不能检测到对象属性的添加或删除**，如果新建一个对象则是可以检测到这个变化并重新渲染的)，需要使用`Vue.set() or this.$set()`来为一个对象添加一个新的属性。
+
+``` javascript
+created() {
+    ['top', 'new', 'show', 'ask', 'job'].forEach(state => {
+        getStories(state)
+            .then(val => {
+            let itemList = val.slice(0, 20)
+            this.getStoriesItem(itemList)
+                .then(data => this.$set(this.apiData, state, data))
+        })
+    })
+}
+```
+
+为了保存不同的现在的状态，我们在`data`中增加`state`属性，在点击导航栏时更改当前的状态。
+
+需要注意的是，现在还没有路由，更换URL不会访问到任何东西，所以在这里我们将阻止`<a>`标签的默认行为并绑定点击事件。
+
+``` html
+<div id="app">
+    <header>
+        <nav>
+            <a href="/" @click.prevent="handleNavClick($event,'top')">Home</a>
+            <a href="/top" @click.prevent="handleNavClick($event,'top')">Top</a>
+            <a href="/new" @click.prevent="handleNavClick($event,'new')">New</a>
+            <a href="/show" @click.prevent="handleNavClick($event,'show')">Show</a>
+            <a href="/ask" @click.prevent="handleNavClick($event,'ask')">Ask</a>
+            <a href="/jobs" @click.prevent="handleNavClick($event,'job')">Jobs</a>
+        </nav>
+    </header>
+    <main>
+        <ul>
+            <li v-for="news in apiData[state]">
+                <span> {{news.score}} </span>
+                <span> {{news.title}} </span>
+                <span> {{news.url}} </span>
+                <span> by {{news.by}} </span>
+                <span> {{news.time}} </span>
+                <span> {{news.descendants}} comments</span>
+            </li>
+        </ul>
+    </main>
+</div>
+```
+
+这样就简单的实现了不同tab的切换。
+
+接下来还有两个界面，`User`和`Comment`(划掉)。
+
+在编写时发现`state`这个变量名含义不是很明确，更改为`storyState`来表示`['top', 'new', 'show', 'ask', 'job']`这5个状态，`state`来表示`['story', 'user', 'comments']`三个状态。
+
+``` html
+<ul v-if="state === 'story'">
+    <li v-for="news in apiData[storyState]">
+        ...
+        <span @click="handleUserClick(news.by)" style="color: red;"> by {{news.by}} </span>
+        ...
+    </li>
+</ul>
+
+<div v-if="state === 'user'">
+    <h1>User: {{currentUserData.id}} </h1>
+    <p>Created: {{currentUserData.created}} </p>
+    <p>karma: {{currentUserData.karma}} </p>
+    <div v-html="currentUserData.about"></div>
+</div>
+```
+
+``` javascript
+getUserData(userId) {
+    return getUser(userId)
+        .then(val => {
+        this.currentUserData = val
+    })
+},
+handleUserClick(userId) {
+    this.getUserData(userId)
+        .then(
+        this.state = 'user'
+    )
+}
+```
+
+现在的状态：
+
+![commentsOrNav](./img/commentsOrNav.gif)
+
+我们发现在快速切换`User`的时候，会保存有上一次的状态，所以我们需要在获取数据之前先把现在的数据清空，这样就不会发生加载用户数据的过程中显示另一个用户数据的让人困惑的结果。
+
+``` javascript
+handleUserClick(userId) {
+    this.currentUserData = {}
+    this.getUserData(userId)
+        .then(
+        this.state = 'user'
+    )
+}
+```
+

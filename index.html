@@ -13,25 +13,33 @@
     <div id="app">
         <header>
             <nav>
-                <a href="/">Home</a>
-                <a href="/top">Top</a>
-                <a href="/new">New</a>
-                <a href="/show">Show</a>
-                <a href="/ask">Ask</a>
-                <a href="/jobs">Jobs</a>
+                <a href="/" @click.prevent="handleNavClick($event,'top')">Home</a>
+                <a href="/top" @click.prevent="handleNavClick($event,'top')">Top</a>
+                <a href="/new" @click.prevent="handleNavClick($event,'new')">New</a>
+                <a href="/show" @click.prevent="handleNavClick($event,'show')">Show</a>
+                <a href="/ask" @click.prevent="handleNavClick($event,'ask')">Ask</a>
+                <a href="/jobs" @click.prevent="handleNavClick($event,'job')">Jobs</a>
             </nav>
         </header>
         <main>
-            <ul>
-                <li v-for="news in topNewsData">
+            <ul v-if="state === 'story'">
+                <li v-for="news in apiData[storyState]">
                     <span> {{news.score}} </span>
                     <span> {{news.title}} </span>
                     <span> {{news.url}} </span>
-                    <span> by {{news.by}} </span>
+                    <span @click="handleUserClick(news.by)" style="color: red;"> by {{news.by}} </span>
                     <span> {{news.time}} </span>
                     <span> {{news.descendants}} comments</span>
                 </li>
             </ul>
+
+            <div v-if="state === 'user'">
+                <h1>User: {{currentUserData.id}} </h1>
+                <p>Created: {{currentUserData.created}} </p>
+                <p>karma: {{currentUserData.karma}} </p>
+                <div v-html="currentUserData.about"></div>
+            </div>
+
         </main>
     </div>
 
