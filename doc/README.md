@@ -405,3 +405,112 @@ inject: ['handleUserClick']
 ```
 
 就可以在comment组件中调用`handleUserClick`方法。
+
+#### 2.5 Render Page: More Components
+
+接下来我们将让我们的程序更加组件化。
+
+首先让我们把重复的部分合并：对于每篇文章的展示的卡片，我们使用了两次，可以把它抽象为一个组件。在抽象的过程中会涉及到父组件与子组件的通信，采用子组件触发事件、父组件监听事件的形式。
+
+将这一部分代码放到template中并稍加修改：
+
+``` javascript
+Vue.component('acticle-card', {
+    template: `
+    <article 
+        class="bg-white b--black-30 bb" 
+    >
+        <div class="dt h6 w-100 pb2">
+            <div class="dtc w3 tc v-mid">
+                <span class="orange f3">{{story.score}}</span>
+            </div>
+            <div class="dtc v-mid pl2">
+                <div class="lh-title black mv0">
+                    <template v-if="story.url">
+                        <a :href="story.url" class="link f6 f5-ns fw4 black">{{story.title}}</a>
+                        <span class="f7 black-60">({{story.url | host}})</span>
+                    </template>
+                    <template v-else>
+                        <a :href="'/item/' + story.id" class="link f6 f5-ns fw4 black">{{story.title}}</a>
+                    </template>
+                </div>
+                <div class="f7 fw5 mt2 mb0 black-60">
+                    by <a :href="'/user/' + story.by" class="color-inherit" @click.prevent="handleUserClick(story.by)">{{story.by}}</a> 
+                    <span>{{story.time | timeFromNow}}</span> 
+                    <span v-if="story.descendants"> | </span> 
+                    <a :href="'/item/' + story.id" class="color-inherit" v-if="story.descendants" @click.prevent="handleCommentClick(story)">{{story.descendants}} comments</a>
+                </div>
+            </div>
+        </div>
+    </article>
+    `,
+    props: {
+        story: Object,
+    },
+    data() {
+        return {
+            
+        }
+    },
+    methods: {
+        handleCommentClick(story) {
+            this.$emit('comment-click', story)
+        },
+        handleUserClick(by) {
+            this.$emit('user-click', by)
+        }
+    }
+})
+
+// 调用
+<acticle-card 
+    v-for="story in apiData[storyState]"
+    v-if="!!story"
+    :key="story.id"
+    :story="story"
+    @comment-click="handleCommentClick"
+    @user-click="handleUserClick"
+></acticle-card>
+```
+
+然后将各个单独的页面变成一个组件`userView`，`storyListView`、`articleView`(带评论的界面)。
+
+> ⚠️
+>
+> HTML attributes are case-insensitive and camelCased props need to use their kebab-case equivalents when using in-DOM templates.
+
+最后我们的`index.html`，变成了这个样子：
+
+``` html
+<div 
+    class="center mw7 mt2"
+>
+    <article-view
+        v-if="state === 'comments'"
+        :story="currentArticle"
+        @comment-click="handleCommentClick"
+        @user-click="handleUserClick"
+    >
+    </article-view>
+
+    <story-list-view
+        v-if="state === 'story'"
+        :story-list="apiData[storyState]"
+        @comment-click="handleCommentClick"
+        @user-click="handleUserClick"
+    ></story-list-view>
+
+    <user-view
+        v-if="state === 'user'"
+        :user="currentUserData"
+    ></user-view>
+</div>
+```
+
+组件结构：
+
+![componentTree](./img/componentTree.png)
+
+#### 总结
+
+这一部分的内容差不多就结束了，~~CSS的部分虽然被省略了，但是这一部分的内容其实不是很简单~~。虽然现在基本功能已经实现了，但是我们还可以让他变得更好，这就是我们接下来的工作。
