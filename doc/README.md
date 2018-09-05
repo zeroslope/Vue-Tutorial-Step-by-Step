@@ -514,3 +514,189 @@ Vue.component('acticle-card', {
 #### 总结
 
 这一部分的内容差不多就结束了，~~CSS的部分虽然被省略了，但是这一部分的内容其实不是很简单~~。虽然现在基本功能已经实现了，但是我们还可以让他变得更好，这就是我们接下来的工作。
+
+### 3.Router
+
+至于为什么要使用Router，可以认为Router的保存了页面的部分信息，通过这个信息可以达到一个特定的状态，可以让我们更方便的分享我们的所看到的信息，而不是一直是一个`index.html`。
+
+> WEB2.0时代是一个信息分享的时代，如果用户切换到了另一个页面，但是URL仍然显示的是index.html，那么用户想要分享这个页面给他的朋友，他的朋友访问到的则只是这个SPA的首页，并不是这个分享的用户本身希望他朋友看到的页面。因此前端路由在改变页面的时候必须让URL跟着一起变。这样同时也近似完美地解决了历史上ajax导致浏览器返回前进按钮失效的问题。
+
+#### 3.1 Router: refactor
+
+首先需要列出我们所需要的路由及其应该对应的组件。
+
+|             URL              |    Component    |
+| :--------------------------: | :-------------: |
+| /,/top,/new,/show,/ask,/jobs | story-list-view |
+|          /user/:id           |    user-view    |
+|           item/:id           |  article-view   |
+
+然后引入`Vue Router`并把我们之前采用的事件触发来更改状态的代码改为采用url来触发。
+
+数据的获取方式需要相应的进行改变，把在根实例中获取数据，移动到在组件中获取数据，首先来更改`story-list-view`这个组件，由于在router中需要组件的"构造函数？"(这里不知道怎么形容)，所以我们需要显示的获取到这个函数。
+
+``` javascript
+const StoryListView = Vue.component('story-list-view', {
+    ...
+})
+```
+
+新建`./routers/index.js`文件，添加`props`	是为了更加方便的判断组件的状态：
+
+``` javascript
+const routes = [
+    {
+        path: '/',
+        redirect: '/top'
+    },
+    {
+        path: '/top',
+        component: StoryListView,
+        props: { storyState: 'top' }
+    },
+    { 
+        path: '/new', 
+        component: StoryListView,
+        props: { storyState: 'new' }
+    },
+    { 
+        path: '/show', 
+        component: StoryListView,
+        props: { storyState: 'show' }
+    },
+    { 
+        path: '/ask',
+        component: StoryListView,
+        props: { storyState: 'ask' }
+    },
+    { 
+        path: '/jobs', 
+        component: StoryListView,
+        props: { storyState: 'job' }
+    }
+]
+```
+
+这个时候我们的导航栏也要有相应的改变，把`<a>`标签改为`router-link`，并把点击事件删掉，。
+
+``` html
+<a href="/top" :class="navAClass" @click.prevent="handleNavClick($event,'top')">Top</a>
+
+<router-link to="/top"  :class="navAClass">Top</router-link>
+```
+
+我们的数据获取方式也要进行相应的改变，之前是在root实例中，现在应该放到`story-list-view`组件中，对于不同的URL获取不同的数据。我们先按照之前的方式，先在`created`时获取全部的数据，然后不同的URL加载对应的数据。
+
+``` javascript
+const StoryListView = Vue.component('story-list-view', {
+    template: `
+    <div class="overflow-hidden">
+        <story-card
+            v-for="story in apiData[storyState]"
+            ...
+        ></story-card>
+    </div>
+    `,
+    props: {
+        storyState: String
+    },
+    data() {
+        return {
+            apiData: {},
+        }
+    },
+    created() {
+        ['top', 'new', 'show', 'ask', 'job'].forEach(storyState => {
+            getStories(storyState)
+            .then(val => {
+                let itemList = val.slice(0, 20)
+                this.getStoriesItem(itemList)
+                .then(data => this.$set(this.apiData, storyState, data))
+            })
+        })
+    },
+    methods: {
+        // ... 这里的函数可以删掉了
+        getStoriesItem(stories) {
+            return Promise.all(stories.map(id => getItem(id)))
+        },
+    }
+})
+```
+
+这个时候就可以看到URL和数据一起变化了！
+
+![storyRouter](./img/storyRouter.gif)
+
+接下来我们来写user对应的界面，测试可直接把路径改为`/user/kjeetgill`。
+
+``` javascript
+const routes = [
+    // ...
+    {
+        path: '/user/:id', //动态路由
+        component: UserView,
+    }
+]
+
+const UserView = Vue.component('user-view', {
+    template: ...,
+    data() {
+        return {
+            user: {}
+        }
+    },
+    created() {
+        this.getUserData(this.$route.params.id)
+    },
+    watch: {
+        '$route' (to, from) {
+            this.getUserData(to.params.id)
+        }
+    },
+    methods: {
+        getUserData(userId) {
+            this.user = {}
+            return getUser(userId)
+            .then(val => {
+                this.user = val
+            })
+        }
+    }
+})
+```
+
+接下来是`article-view`，和上面的步骤相同。
+
+``` javascript
+const ArticleView = Vue.component('article-view', {
+    template: `...`,
+    data() {
+        return {
+            story: {},
+            loading: false
+        }
+    },
+    created() {
+        this.getItemData(this.$route.params.id)
+    },
+    watch: {
+        '$route' (to, from) {
+            this.getItemData(to.params.id)
+        }
+    },
+    methods: {
+        getItemData(id) {
+            this.story = {}
+            this.loading = true
+            return getItem(id)
+            .then(val => {
+                this.story = val
+                this.loading = false
+            })
+        }
+    }
+})
+```
+
+接下来就是把需要用到路由的地方替换为`router-link`的方法，然后就可以愉快的体验一下了。

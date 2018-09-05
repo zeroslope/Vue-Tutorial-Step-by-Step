@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.10.0/css/tachyons.min.css"/>
     <link rel="stylesheet" href="./main.css"/>
     <script src="https://cdn.bootcss.com/vue/2.5.16/vue.js"></script>
+    <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
     <script src="https://www.gstatic.com/firebasejs/5.0.4/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/5.0.4/firebase-database.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
@@ -16,39 +17,15 @@
     <div id="app">
         <header class="bg-black white avenir">
             <nav class="center mw7">
-                <a href="/top"  :class="navAClass" @click.prevent="handleNavClick($event,'top')">Top</a>
-                <a href="/new"  :class="navAClass" @click.prevent="handleNavClick($event,'new')">New</a>
-                <a href="/show" :class="navAClass" @click.prevent="handleNavClick($event,'show')">Show</a>
-                <a href="/ask"  :class="navAClass" @click.prevent="handleNavClick($event,'ask')">Ask</a>
-                <a href="/jobs" :class="navAClass" @click.prevent="handleNavClick($event,'job')">Jobs</a>
+                <router-link to="/top"  :class="navAClass">Top</router-link>
+                <router-link to="/new"  :class="navAClass">New</router-link>
+                <router-link to="/show" :class="navAClass">Show</router-link>
+                <router-link to="/ask"  :class="navAClass">Ask</router-link>
+                <router-link to="/jobs" :class="navAClass">Jobs</router-link>
             </nav>
         </header>
         <main>
-
-            <div 
-                class="center mw7 mt2"
-            >
-                <article-view
-                    v-if="state === 'comments'"
-                    :story="currentArticle"
-                    @comment-click="handleCommentClick"
-                    @user-click="handleUserClick"
-                >
-                </article-view>
-
-                <story-list-view
-                    v-if="state === 'story'"
-                    :story-list="apiData[storyState]"
-                    @comment-click="handleCommentClick"
-                    @user-click="handleUserClick"
-                ></story-list-view>
-
-                <user-view
-                    v-if="state === 'user'"
-                    :user="currentUserData"
-                ></user-view>
-            </div>
-
+            <router-view class="center mw7 mt2"></router-view>
         </main>
     </div>
 
@@ -58,6 +35,7 @@
     <script src="./component/StoryListView.js"></script>
     <script src="./component/UserView.js"></script>
     <script src="./component/ArticleView.js"></script>
+    <script src="./routers/index.js"></script>
     <script src="./main.js"></script>
 </body>
 </html>

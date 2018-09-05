@@ -5,7 +5,7 @@ Vue.component('comments-view', {
         v-if="comment && !loading"
     >
         <div class="f6 gray">
-            <a :href="'/user/' + comment.by" class="gray" @click.prevent="handleUserClick(comment.by)">{{ comment.by }}</a>
+            <router-link :to="'/user/' + comment.by" class="gray">{{ comment.by }}</router-link>
             {{ comment.time | timeFromNow }}
         </div>
         <div class="lh-solid f6 pv2 fw1" v-html="comment.text"></div>
@@ -24,7 +24,6 @@ Vue.component('comments-view', {
     props: {
         id: Number,
     },
-    inject: ['handleUserClick'],
     data() {
         return {
             open: true,

@@ -13,24 +13,25 @@ Vue.filter('host', function (url) {
 
 let app = new Vue({
     el: "#app",
+    router,
     data: {
         state: 'story',
         storyState: 'top',
         apiData: {},
         currentUserData: {},
         currentArticle: {},
-        navAClass: ['dib', 'f6', 'f5-l', 'link', 'white', 'pa3', 'ph4-l', 'bg-animate', 'hover-bg-mid-gray', 'mw7']
+        navAClass: ['dib', 'f6', 'f5-l', 'no-underline', 'white', 'pa3', 'ph4-l', 'bg-animate', 'hover-bg-mid-gray', 'mw7']
     },
-    created() {
-        ['top', 'new', 'show', 'ask', 'job'].forEach(storyState => {
-            getStories(storyState)
-            .then(val => {
-                let itemList = val.slice(0, 20)
-                this.getStoriesItem(itemList)
-                .then(data => this.$set(this.apiData, storyState, data))
-            })
-        })
-    },
+    // created() {
+    //     ['top', 'new', 'show', 'ask', 'job'].forEach(storyState => {
+    //         getStories(storyState)
+    //         .then(val => {
+    //             let itemList = val.slice(0, 20)
+    //             this.getStoriesItem(itemList)
+    //             .then(data => this.$set(this.apiData, storyState, data))
+    //         })
+    //     })
+    // },
     provide: function () {
         return {
             handleUserClick: this.handleUserClick

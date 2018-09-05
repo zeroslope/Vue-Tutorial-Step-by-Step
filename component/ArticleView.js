@@ -1,10 +1,8 @@
-Vue.component('article-view', {
+const ArticleView = Vue.component('article-view', {
     template: `
-    <div class="bg-white overflow-hidden">
+    <div class="bg-white overflow-hidden" v-if="!loading">
         <story-card
             :story="story"
-            @comment-click="handleCommentClick"
-            @user-click="handleUserClick"
         ></story-card>
 
         <h2 class="f5 pl4 fw4">{{ story.kids.length }} Comments</h2>
@@ -18,15 +16,29 @@ Vue.component('article-view', {
         </ul>
     </div>
     `,
-    props: {
-        story: Object
+    data() {
+        return {
+            story: {},
+            loading: false
+        }
+    },
+    created() {
+        this.getItemData(this.$route.params.id)
+    },
+    watch: {
+        '$route' (to, from) {
+            this.getItemData(to.params.id)
+        }
     },
     methods: {
-        handleCommentClick(story) {
-            this.$emit('comment-click', story)
-        },
-        handleUserClick(by) {
-            this.$emit('user-click', by)
+        getItemData(id) {
+            this.story = {}
+            this.loading = true
+            return getItem(id)
+            .then(val => {
+                this.story = val
+                this.loading = false
+            })
         }
     }
 })

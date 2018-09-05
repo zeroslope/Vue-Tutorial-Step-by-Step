@@ -1,4 +1,4 @@
-Vue.component('user-view', {
+const UserView = Vue.component('user-view', {
     template: `
     <div class="bg-white pa4">
         <h2 class="f3 black-80 mt0">User : {{user.id}} </h2>
@@ -9,7 +9,26 @@ Vue.component('user-view', {
         <div class="f5" v-html="user.about"></div>
     </div>
     `,
-    props: {
-        user: Object,
+    data() {
+        return {
+            user: {}
+        }
+    },
+    created() {
+        this.getUserData(this.$route.params.id)
+    },
+    watch: {
+        '$route' (to, from) {
+            this.getUserData(to.params.id)
+        }
+    },
+    methods: {
+        getUserData(userId) {
+            this.user = {}
+            return getUser(userId)
+            .then(val => {
+                this.user = val
+            })
+        }
     }
 })

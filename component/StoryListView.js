@@ -1,25 +1,35 @@
-Vue.component('story-list-view', {
+const StoryListView = Vue.component('story-list-view', {
     template: `
     <div class="overflow-hidden">
         <story-card
-            v-for="story in storyList"
+            v-for="story in apiData[storyState]"
             v-if="!!story"
             :key="story.id"
             :story="story"
-            @comment-click="handleCommentClick"
-            @user-click="handleUserClick"
         ></story-card>
     </div>
     `,
     props: {
-        storyList: Array
+        storyState: String
+    },
+    data() {
+        return {
+            apiData: {},
+        }
+    },
+    created() {
+        ['top', 'new', 'show', 'ask', 'job'].forEach(storyState => {
+            getStories(storyState)
+            .then(val => {
+                let itemList = val.slice(0, 20)
+                this.getStoriesItem(itemList)
+                .then(data => this.$set(this.apiData, storyState, data))
+            })
+        })
     },
     methods: {
-        handleCommentClick(story) {
-            this.$emit('comment-click', story)
+        getStoriesItem(stories) {
+            return Promise.all(stories.map(id => getItem(id)))
         },
-        handleUserClick(by) {
-            this.$emit('user-click', by)
-        }
     }
 })

@@ -5,3 +5,7 @@
 a {
     color: inherit;
 }
+
+nav .router-link-active {
+    background-color: #555;
+}
