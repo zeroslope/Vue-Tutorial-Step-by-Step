@@ -308,3 +308,100 @@ handleUserClick(userId) {
 hacknews内部的文章的界面还没有编写，因为需要依赖`comments`组件，所以下一步就是编写`comments`组件。
 
 ![css](./img/css.gif)
+
+#### 2.4 Render Page: comments
+
+前面我们提到的 item中存在url为空的情况，这时点击这个title跳转到的界面和点击comments跳转到的界面相同，都是这一篇文章的基本情况 + 文章的comments。
+
+编写comments需要涉及到递归渲染，因为他是一个树形结构，在这里我们参照官网的[树形视图 Example](https://cn.vuejs.org/v2/examples/tree-view.html)。
+
+定义组件的`template `大概有三种方法:
+
+- 字符串
+- [内连模板](https://cn.vuejs.org/v2/guide/components-edge-cases.html#%E5%86%85%E8%81%94%E6%A8%A1%E6%9D%BF)
+- [X-Template](https://cn.vuejs.org/v2/guide/components-edge-cases.html#X-Templates)
+
+这里选用字符串形式的模板(这样做是为了让模板和该组件的其它定义在一起，如果觉得没有高亮可以使用`X-Template`)。由于我们是编写一个单独的组件，所以我们可以单独测试，传入的数据采用“假”数据，编写完成后再放到真实的环境中调试。(~~为了方便测试，将其他部分的代码直接注释掉了~~)
+
+由于这个组件设计到异步操作，感觉模仿异步比较困难，所以将直接采用`Firebase api`。
+
+编写过程中发现我们的`filters`应该作为一个全局的过滤器，在comments组件也需要用到(不知道如何传递一个过滤器)。
+
+``` javascript
+Vue.component('comments-view', {
+    template: `
+    <li v-if="!!comment && !loading" >
+        <div>
+            <a :href="'/user/' + comment.by">{{ comment.by }}</a>
+            {{ comment.time | timeFromNow }} ago
+            <span v-if="comment.kids && comment.kids.length">
+                | <a @click="open = !open">
+                    {{ comment.kids.length + (open ? ' collapse ' : ' expand ') }}
+                </a>
+            </span>
+        </div>
+        <div class="text" v-html="comment.text"></div>
+        <ul v-show="open">
+            <comments-view v-for="kid in comment.kids" :id="kid"></comments-view>
+        </ul>
+    </li>
+    `,
+    props: {
+        id: Number,
+    },
+    data() {
+        return {
+            open: true,
+            loading: false,
+            comment: {}
+        }
+    },
+    beforeMount() {
+        this.comment = {}
+        this.loading = true
+        getItem(this.id)
+        .then(val => {
+            this.comment = val
+            this.loading = false
+        })
+    },
+    methods: {
+    }
+})
+```
+
+我们的组件现在的效果如下(选用的id为`17900730`)，接下来就是美化它。
+
+![commentWithoutCSS](./img/commentWithoutCSS.gif)
+
+仔细观察发现，会有被`deleted`	的数据，对这种数据只会显示时间。
+
+``` javascript
+{"deleted":true,"id":17904415,"parent":17900730,"time":1536002750,"type":"comment"}
+```
+
+写CSS还是依据个人喜好来做，我实现的效果如下：
+
+![commentWithCSS](./img/commentWithCSS.gif)
+
+对于每个comments内部的用户名，对用户名的点击都要显示对应的用户信息，这个时候就涉及到组件之间的通信。组件之间通信的方式大概有`emit on`、`event bus`、`Vuex`这几种基于事件的方式，还有`$parent`、`$root`、`$ref`、依赖注入等方式。
+
+这个地方采用[依赖注入](https://cn.vuejs.org/v2/guide/components-edge-cases.html#%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5)的方式实现递归组件与父组件的通信。
+
+在`main.js`中，添加
+
+``` javascript
+provide: function () {
+    return {
+        handleUserClick: this.handleUserClick
+    }
+}
+```
+
+在`Comment.js`中，添加
+
+``` javascript
+inject: ['handleUserClick']
+```
+
+就可以在comment组件中调用`handleUserClick`方法。

@@ -1,3 +1,7 @@
 .h6 {
     height: 6rem;
 }
+
+a {
+    color: inherit;
+}

@@ -1,3 +1,16 @@
+Vue.filter('timeFromNow', function (time) {
+    if (!time) return ''
+    return moment(time * 1000).fromNow()
+})
+
+Vue.filter('host', function (url) {
+    if (!url) return ''  
+    const host = url.replace(/^https?:\/\//, '').replace(/\/.*$/, '')
+    const parts = host.split('.').slice(-3)
+    if(parts[0] === 'www') parts.shift()
+    return parts.join('.')
+})
+
 let app = new Vue({
     el: "#app",
     data: {
@@ -5,6 +18,7 @@ let app = new Vue({
         storyState: 'top',
         apiData: {},
         currentUserData: {},
+        currentArticle: {},
         navAClass: ['dib', 'f6', 'f5-l', 'link', 'white', 'pa3', 'ph4-l', 'bg-animate', 'hover-bg-mid-gray', 'mw7']
     },
     created() {
@@ -17,15 +31,9 @@ let app = new Vue({
             })
         })
     },
-    filters: {
-        timeFromNow(time) {
-            return moment(time * 1000).fromNow()
-        },
-        host(url) {
-            const host = url.replace(/^https?:\/\//, '').replace(/\/.*$/, '')
-            const parts = host.split('.').slice(-3)
-            if(parts[0] === 'www') parts.shift()
-            return parts.join('.')
+    provide: function () {
+        return {
+            handleUserClick: this.handleUserClick
         }
     },
     methods: {
@@ -48,6 +56,10 @@ let app = new Vue({
             .then(
                 this.state = 'user'
             )
+        },
+        handleCommentClick(story) {
+            this.state = 'comments'
+            this.currentArticle = story
         }
     }
 })

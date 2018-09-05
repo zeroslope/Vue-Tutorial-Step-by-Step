@@ -12,7 +12,7 @@
     <script src="https://www.gstatic.com/firebasejs/5.0.4/firebase-database.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
 </head>
-<body class="sans-serif vh-100 bg-light-gray">
+<body class="sans-serif vh-100 bg-black-05">
     <div id="app">
         <header class="bg-black white avenir">
             <nav class="center mw7">
@@ -24,35 +24,80 @@
             </nav>
         </header>
         <main>
+
+            <div 
+                class="center mw7 mt2"
+                v-if="state === 'comments'"
+            >
+                <div class="bg-white pa1">
+                    <article 
+                        class="bg-white b--black-30 bb" 
+                    >
+                        <div class="dt h6 w-100 pb2">
+                            <div class="dtc w3 tc v-mid">
+                                <span class="orange f3">{{currentArticle.score}}</span>
+                            </div>
+                            <div class="dtc v-mid pl2">
+                                <div class="lh-title black mv0">
+                                    <template v-if="currentArticle.url">
+                                        <a :href="currentArticle.url" class="link f6 f5-ns fw4 black">{{currentArticle.title}}</a>
+                                        <span class="f7 black-60">({{currentArticle.url | host}})</span>
+                                    </template>
+                                    <template v-else>
+                                        <a :href="'/item/' + currentArticle.id" class="link f6 f5-ns fw4 black">{{currentArticle.title}}</a>
+                                    </template>
+                                </div>
+                                <div class="f7 fw5 mt2 mb0 black-60">
+                                    by <a :href="'/user/' + currentArticle.by" class="color-inherit" @click.prevent="handleUserClick(currentArticle.by)">{{currentArticle.by}}</a> 
+                                    <span>{{currentArticle.time | timeFromNow}}</span> 
+                                    <span v-if="currentArticle.descendants"> | </span> 
+                                    <a :href="'/item/' + currentArticle.id" class="color-inherit" v-if="currentArticle.descendants" @click.prevent="handleCommentClick(currentArticle)">{{currentArticle.descendants}} comments</a>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <h2 class="f5 pl4 fw4">{{ currentArticle.kids.length }} Comments</h1>
+                    <ul class="list ph4">
+                        <comments-view
+                            v-for="id in currentArticle.kids"
+                            :id="id"
+                            :key="id"
+                        >
+                        </comments-view>
+                    </ul>
+                </div>
+            </div>
+
             <div 
                 class="center mw7 mt2"
                 v-if="state === 'story'"
             >
                 <article 
                     class="bg-white b--black-30 bb" 
-                    v-for="news in apiData[storyState]"
-                    v-if="!!news"
-                    :key=" news.id"
+                    v-for="story in apiData[storyState]"
+                    v-if="!!story"
+                    :key="story.id"
                 >
-                    <div class="dt h6 w-100 pb2 orange">
+                    <div class="dt h6 w-100 pb2">
                         <div class="dtc w3 tc v-mid">
-                            <span class="f3">{{news.score}}</span>
+                            <span class="orange f3">{{story.score}}</span>
                         </div>
                         <div class="dtc v-mid pl2">
                             <div class="lh-title black mv0">
-                                <template v-if="news.url">
-                                    <a :href="news.url" class="link f6 f5-ns fw4 black">{{news.title}}</a>
-                                    <span class="f7 black-60">({{news.url | host}})</span>
+                                <template v-if="story.url">
+                                    <a :href="story.url" class="link f6 f5-ns fw4 black">{{story.title}}</a>
+                                    <span class="f7 black-60">({{story.url | host}})</span>
                                 </template>
                                 <template v-else>
-                                    <a :href="'/item/' + news.id" class="link f6 f5-ns fw4 black">{{news.title}}</a>
+                                    <a :href="'/item/' + story.id" class="link f6 f5-ns fw4 black" @click.prevent="handleCommentClick(story)">{{story.title}}</a>
                                 </template>
                             </div>
                             <div class="f7 fw5 mt2 mb0 black-60">
-                                by <span class="underline" @click="handleUserClick(news.by)">{{news.by}}</span> 
-                                <span>{{news.time | timeFromNow}}</span> 
-                                <span v-if="news.descendants"> | </span> 
-                                <span class="underline" v-if="news.descendants">{{news.descendants}} comments</span>
+                                by <a :href="'/user/' + story.by" class="color-inherit" @click.prevent="handleUserClick(story.by)">{{story.by}}</a> 
+                                <span>{{story.time | timeFromNow}}</span> 
+                                <span v-if="story.descendants"> | </span> 
+                                <a :href="'/item/' + story.id" class="color-inherit" v-if="story.descendants" @click.prevent="handleCommentClick(story)">{{story.descendants}} comments</a>
                             </div>
                         </div>
                     </div>
@@ -77,6 +122,7 @@
     </div>
 
     <script src="./firebaseAPI.js"></script>
+    <script src="./component/Comments.js"></script>
     <script src="./main.js"></script>
 </body>
 </html>
