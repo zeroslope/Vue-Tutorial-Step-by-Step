@@ -15,8 +15,8 @@
 </head>
 <body class="sans-serif vh-100 bg-black-05">
     <div id="app">
-        <header class="bg-black white avenir">
-            <nav class="center mw7">
+        <header class="bg-black white avenir fixed w-100">
+            <nav class="h3rem center mw7">
                 <router-link to="/top"  :class="navAClass">Top</router-link>
                 <router-link to="/new"  :class="navAClass">New</router-link>
                 <router-link to="/show" :class="navAClass">Show</router-link>
@@ -25,7 +25,7 @@
             </nav>
         </header>
         <main>
-            <router-view class="center mw7 mt2"></router-view>
+            <router-view class="pt5"></router-view>
         </main>
     </div>
 

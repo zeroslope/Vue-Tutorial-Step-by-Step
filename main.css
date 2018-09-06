@@ -2,10 +2,26 @@
     height: 6rem;
 }
 
+.h3rem {
+    height: 3rem;
+}
+
+.top3rem {
+    top: 3rem;
+}
+
+.pt3rem {
+    top: 3rem
+}
+
 a {
     color: inherit;
 }
 
 nav .router-link-active {
     background-color: #555;
+}
+
+.disabled {
+    color: #ccc;
 }

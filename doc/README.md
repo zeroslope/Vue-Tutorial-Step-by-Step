@@ -700,3 +700,128 @@ const ArticleView = Vue.component('article-view', {
 ```
 
 接下来就是把需要用到路由的地方替换为`router-link`的方法，然后就可以愉快的体验一下了。
+
+#### 3.2 Router: Turn page
+
+我们之前的路由还有进行充分的限制，对于`item/:id`后面的id只能为整数，我们需要加以限制；同时对于翻页效果，采用`/top/:page`来实现，同样page也只能是整数，所以就需要正则表达式来更详细的来实现我们的需求，参考[高级匹配模式](https://router.vuejs.org/zh/guide/essentials/dynamic-matching.html#%E9%AB%98%E7%BA%A7%E5%8C%B9%E9%85%8D%E6%A8%A1%E5%BC%8F)。
+
+``` javascript
+// item/:id(//d+) //现在的id只有是整数时才能匹配
+    
+const routes = [
+    { path: '/', redirect: '/top' },
+    { path: '/top/:page(\\d+)?', component: StoryListView, props: { storyState: 'top' } },
+    { path: '/new/:page(\\d+)?', component: StoryListView, props: { storyState: 'new' } },
+    { path: '/show/:page(\\d+)?', component: StoryListView, props: { storyState: 'show' } },
+    { path: '/ask/:page(\\d+)?', component: StoryListView, props: { storyState: 'ask' } },
+    { path: '/jobs/:page(\\d+)?', component: StoryListView, props: { storyState: 'job' } },
+    { path: '/user/:id', component: UserView },
+    { path: '/item/:id(\\d+)', component: ArticleView }
+]
+```
+
+对于翻页效果，如果没有page number默认访问第一页，若超过最大页数则访问最后一页，否则按指定页数访问。
+
+在这里需要把导航栏设置成`fixed`，并且在下方增加一个翻页的栏，所以需要把界面布局稍微改动一下（根据个人喜好酌情修改）。
+
+由于我们现在5个URL都对应的是同一个组件，这个组件既要监测`/top /new /show /ask /jobs`的变化，又要监测page的变化，还有获取数据的异步问题，且在切换URL时还要保证数据正确反应URL的信息。这个组件变得非常难以编写且难以维护，不过我们先忍住将它编写完，再下一节我们将重构这个组件。
+
+需要注意的是，watch不能监测初始化时数据的变化(从无到有的过程)，这个过程需要在生命周期的hook函数中完成，在之后的时间内将由watch监测数据变化并触发相应事件。
+
+``` javascript
+const StoryListView = Vue.component('story-list-view', {
+    template: `
+    <div>
+        <div>
+            <div class="w-100 bg-white fixed top3rem">
+                <div class="center pa2 mw5 tc">
+                    <router-link v-if='page > 1' :to="'/' + storyState + '/' + (page - 1)" class="no-underline pa2">&lt; prev</router-link>
+                    <a v-else class="disabled no-underline pa2">&lt; prev</a>
+                    <span>{{ page }}/{{ maxPage }}</span>
+                    <router-link v-if="hasMore" :to="'/' + storyState + '/' + (page + 1)" class="no-underline pa2">more &gt;</router-link>
+                    <a v-else class="disabled no-underline pa2">more &gt;</a>
+                </div>
+            </div>
+            <div class="overflow-hidden mw7 center pt4 mt3">
+                <story-card
+                    v-for="story in displayList"
+                    v-if="!!story"
+                    :key="story.id"
+                    :story="story"
+                ></story-card>
+            </div>
+        </div>
+    </div>
+    `,
+    props: {
+        storyState: String
+    },
+    data() {
+        return {
+            apiData: {},
+            itemsPerPage: 20,
+            displayList: []
+        }
+    },
+    computed: {
+        page() {
+            return Number(this.$route.params.page) || 1
+        },
+        maxPage() {
+            if (this.apiData[this.storyState]) {
+                return Math.ceil(this.apiData[this.storyState].length / this.itemsPerPage )
+            } else {
+                return 1
+            }
+        },
+        hasMore() {
+            return this.page < this.maxPage
+        }
+    },
+    watch: {
+        page(to, from) {
+            console.log(to, from)
+            this.loadItems(to, from)
+        },
+        storyState(newVal, oldVal) {
+            console.log(newVal, oldVal)
+            this.loadItems(this.page)
+        }
+    },
+    created() {
+        ['top', 'new', 'show', 'ask', 'job'].forEach(storyState => {
+            getStories(storyState)
+            .then(val => {
+                let itemList = val
+                this.getStoriesItem(itemList)
+                .then(data => {
+                    this.$set(this.apiData, storyState, data)
+                    if (storyState === this.storyState) {
+                        this.loadItems(this.page)
+                    }
+                })
+            })
+        })
+    },
+    methods: {
+        getStoriesItem(stories) {
+            return Promise.all(stories.map(id => getItem(id)))
+        },
+        loadItems(to = this.page, from = -1){
+            if(this.page < 0 || this.page > this.maxPage){
+                this.$router.replace(`/${this.storyState}/1`)
+                return
+            }
+            let itemsPerPage = this.itemsPerPage
+            this.displayList = this.apiData[this.storyState].slice((this.page-1)*itemsPerPage,  this.page*itemsPerPage)
+        }
+    }
+})
+```
+
+目前的效果：
+
+![turnPage](./img/turnPage.gif)
+
+
+
