@@ -20,7 +20,7 @@ let app = new Vue({
         apiData: {},
         currentUserData: {},
         currentArticle: {},
-        navAClass: ['dib', 'f6', 'no-underline', 'white', 'pa3', 'ph4-l', 'bg-animate', 'hover-bg-mid-gray', 'mw7']
+        navAClass: ['dib', 'f6', 'no-underline', 'white', 'pa3', 'ph4-l', 'bg-animate', 'mw7']
     },
     methods: {
         getStoriesItem(stories) {

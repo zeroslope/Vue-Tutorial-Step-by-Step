@@ -825,3 +825,48 @@ const StoryListView = Vue.component('story-list-view', {
 
 
 
+#### 3.3 Router: refactor :slightly_smiling_face:
+
+对我们的程序进行小小的重构，让每个story对应一个组件，每个组件只用关心page的改变，只用获取相应story的数据。
+
+``` javascript
+function createListView(storyState) {
+    return {
+        name: `${storyState}-stories-view`,
+        
+        render(h) {
+            return h(StoryListView, { props: { storyState } })
+        }
+    }
+}
+
+const routes = [
+    { path: '/', redirect: '/top' },
+    { path: '/top/:page(\\d+)?', component: createListView('top'), },
+    { path: '/new/:page(\\d+)?', component: createListView('new'), },
+    { path: '/show/:page(\\d+)?', component: createListView('show'), },
+    { path: '/ask/:page(\\d+)?', component: createListView('ask'), },
+    { path: '/jobs/:page(\\d+)?', component: createListView('job'), },
+    { path: '/user/:id', component: UserView },
+    { path: '/item/:id(\\d+)', component: ArticleView }
+]
+```
+
+``` javascript
+// ArticleView.js
+
+created() {
+    getStories(this.storyState)
+    .then(val => {
+        return this.getStoriesItem(val)
+    })
+    .then(data => {
+        this.apiData = data
+        this.loadItems(this.page)
+    })
+},
+```
+
+现在apiData中只用存储当前story的数据，所以可以变成一个List。
+
+这样的话由`/top`切换到`/new` top对应的组件会被`destory`，new对应的组件会被`create`；而在`/top`下切换页码时，组件并不会被销毁而是直接复用。
