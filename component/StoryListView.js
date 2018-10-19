@@ -1,7 +1,7 @@
 const StoryListView = Vue.component('story-list-view', {
     template: `
-    <div>
-        <div class="w-100 bg-white fixed top3rem">
+    <div class="center mw7 relative shadow-3">
+        <div class="bg-white fixed top3rem left-0 right-0 z-5 shadow-5">
             <div class="center pa2 mw5 tc">
                 <router-link 
                     v-if='page > 1' 
@@ -22,14 +22,18 @@ const StoryListView = Vue.component('story-list-view', {
                 <a v-else class="disabled no-underline pa2">more &gt;</a>
             </div>
         </div>
-        <div class="overflow-hidden mw7 center pt4 mt3">
-            <story-card
-                v-for="story in displayList"
-                v-if="!!story"
-                :key="story.id"
-                :story="story"
-            ></story-card>
-        </div>
+        <transition :name="transition">
+           <div :key="displayPage" v-if="true" class="overflow-hidden pt4 mt3 absolute">
+                <transition-group tag="div" name="item">
+                    <story-card
+                        v-for="story in displayList"
+                        v-if="!!story"
+                        :key="story.id"
+                        :story="story"
+                    ></story-card>
+                </transition-group>
+           </div>
+        </transition>
     </div>
     `,
     props: {
@@ -39,7 +43,9 @@ const StoryListView = Vue.component('story-list-view', {
         return {
             apiData: [],
             itemsPerPage: 20,
-            displayList: []
+            displayList: [],
+            displayPage: Number(this.$route.params.page) || 1,
+            transition: 'slide-left',
         }
     },
     computed: {
@@ -59,6 +65,7 @@ const StoryListView = Vue.component('story-list-view', {
     },
     watch: {
         page(to, from) {
+            console.log('page:', to, from)
             this.loadItems(to, from)
         }
     },
@@ -81,6 +88,8 @@ const StoryListView = Vue.component('story-list-view', {
                 this.$router.replace(`/${this.storyState}/1`)
                 return
             }
+            this.transition = to > from ? 'slide-left' : 'slide-right'
+            this.displayPage = to
             let itemsPerPage = this.itemsPerPage
             this.displayList = this.apiData.slice((this.page-1)*itemsPerPage,  this.page*itemsPerPage)
         }
